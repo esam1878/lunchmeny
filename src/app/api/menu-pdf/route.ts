@@ -3,6 +3,8 @@ import type { MenuDay } from "@/lib/menu";
 
 // Puppeteer kräver Node-runtimen (inte edge).
 export const runtime = "nodejs";
+// Ge Chromium tid att starta + rendera (undviker timeout vid kallstart på Vercel).
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   // 1. Läs in menydatan från frontend.
