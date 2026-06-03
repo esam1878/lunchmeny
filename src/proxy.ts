@@ -3,10 +3,8 @@ import type { NextRequest } from "next/server";
 
 import { AUTH_COOKIE, passwordToken } from "@/lib/auth";
 
-// Middleware (Vercel kräver "middleware.ts" + export "middleware").
-// Lokalt fungerar även proxy.ts/proxy(), men Vercels build-infrastruktur
-// stödjer ännu bara det klassiska konventionsnamnet.
-export async function middleware(request: NextRequest) {
+// Next.js 16 / Vercel: proxy.ts + export "proxy" är den gällande konventionen.
+export async function proxy(request: NextRequest) {
   const password = process.env.APP_PASSWORD;
 
   // Om inget lösenord är konfigurerat: släpp igenom (lås inte appen helt).
