@@ -5,8 +5,9 @@ const nextConfig: NextConfig = {
   // Next.js 16 blockerar annars cross-origin-anrop till dev-servern.
   allowedDevOrigins: ["192.168.1.76", "192.168.1.0/24"],
 
-  // Buntar inte in Puppeteer (och dess Chromium) i serverbygget.
-  serverExternalPackages: ["puppeteer"],
+  // Buntar inte in Puppeteer/Chromium i serverbygget (måste laddas externt
+  // för att @sparticuz/chromium ska kunna packa upp sin binär i runtime).
+  serverExternalPackages: ["puppeteer", "puppeteer-core", "@sparticuz/chromium"],
 };
 
 export default nextConfig;

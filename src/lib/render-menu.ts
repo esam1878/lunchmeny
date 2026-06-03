@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import puppeteer from "puppeteer";
+import type { Browser } from "puppeteer-core";
 
 import { renderMenyMall } from "@/app/components/MenyMall";
 import type { MenuDay } from "@/lib/menu";
@@ -8,6 +8,29 @@ import type { MenuDay } from "@/lib/menu";
 // A4 i pixlar vid 96 dpi (för skarpa skärmdumpar).
 const A4_WIDTH_PX = 794;
 const A4_HEIGHT_PX = 1123;
+
+/**
+ * Startar en webbläsare beroende på miljö:
+ * - Vercel (serverless): puppeteer-core + @sparticuz/chromium (Lambda-Chromium).
+ * - Lokalt: full puppeteer med medföljande Chromium.
+ */
+async function launchBrowser(): Promise<Browser> {
+  if (process.env.VERCEL) {
+    const chromium = (await import("@sparticuz/chromium")).default;
+    const { launch } = await import("puppeteer-core");
+    return launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath(),
+      headless: true,
+    });
+  }
+
+  const { launch } = await import("puppeteer");
+  return launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  }) as unknown as Browser;
+}
 
 /** Läser loggan från /public och returnerar den som data-URI, eller null. */
 async function loadLogo(): Promise<string | null> {
@@ -42,12 +65,9 @@ export async function renderMenuAssets(
   const logoSrc = await loadLogo();
   const html = buildHtml(renderMenyMall({ vecka, dagar, logoSrc }));
 
-  let browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null;
+  let browser: Browser | null = null;
   try {
-    browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    });
+    browser = await launchBrowser();
     const page = await browser.newPage();
     await page.setViewport({
       width: A4_WIDTH_PX,
