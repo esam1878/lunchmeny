@@ -3,9 +3,10 @@ import type { NextRequest } from "next/server";
 
 import { AUTH_COOKIE, passwordToken } from "@/lib/auth";
 
-// Next.js 16: "Proxy" (tidigare Middleware). Skyddar hela appen bakom ett
-// enkelt lösenord. Släpper igenom inloggningssidan och login-API:t (se matcher).
-export async function proxy(request: NextRequest) {
+// Middleware (Vercel kräver "middleware.ts" + export "middleware").
+// Lokalt fungerar även proxy.ts/proxy(), men Vercels build-infrastruktur
+// stödjer ännu bara det klassiska konventionsnamnet.
+export async function middleware(request: NextRequest) {
   const password = process.env.APP_PASSWORD;
 
   // Om inget lösenord är konfigurerat: släpp igenom (lås inte appen helt).
