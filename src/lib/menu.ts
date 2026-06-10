@@ -12,6 +12,14 @@ export type Menu = {
   dagar: MenuDay[];
 };
 
+/** En meny sparad i databasen, kopplad till en tenant. */
+export type SavedMenu = {
+  id: string;
+  vecka: number | null;
+  dagar: MenuDay[];
+  created_at: string;
+};
+
 // Nyckel för att skicka den inlästa menyn mellan uppladdnings- och
 // bekräftelsesidan via sessionStorage.
 export const MENU_STORAGE_KEY = "lunchmeny:inläst-meny";

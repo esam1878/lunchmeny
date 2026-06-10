@@ -76,6 +76,11 @@ export default function ConfirmPage() {
     }
     // eslint-disable-next-line react-hooks/set-state-in-effect -- engångsinläsning av webbläsar-state vid montering
     setMenu(parsed);
+    // Återöppnad sparad meny har ett veckonummer → visa det. Färska
+    // AI-menyer saknar oftast vecka och behåller "nästa vecka" som default.
+    if (parsed && typeof parsed.vecka === "number") {
+      setWeek(parsed.vecka);
+    }
     setLoaded(true);
   }, []);
 
@@ -136,7 +141,7 @@ export default function ConfirmPage() {
     }
   }
 
-  // Skickar menyn till Make.com-scenariot via vår API-route.
+  // Sparar menyn på krögarens konto och skickar den till Make.com-scenariot.
   async function handlePublish() {
     if (!menu || publishLoading) return;
 
@@ -145,12 +150,23 @@ export default function ConfirmPage() {
     setPublishError(null);
 
     try {
+      // 1. Spara menyn kopplad till inloggad krögare (RLS sätter tenant).
+      const saveRes = await fetch("/api/menus", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vecka: week, dagar: menu.dagar }),
+      });
+      if (!saveRes.ok) {
+        const saveData = await saveRes.json().catch(() => null);
+        throw new Error(saveData?.error ?? "Kunde inte spara menyn.");
+      }
+
+      // 2. Publicera till Make.com (befintligt flöde).
       const res = await fetch("/api/publish", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ vecka: week, dagar: menu.dagar }),
       });
-
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.ok) {
         throw new Error(data?.error ?? "Publiceringen misslyckades.");

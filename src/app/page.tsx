@@ -1,18 +1,51 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 
-import { MENU_STORAGE_KEY } from "@/lib/menu";
+import { MENU_STORAGE_KEY, type SavedMenu } from "@/lib/menu";
+
+function formatDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString("sv-SE", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
 
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [savedMenus, setSavedMenus] = useState<SavedMenu[]>([]);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+
+  // Hämta krögarens sparade menyer (RLS ger bara dennes egna).
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/menus");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (active && Array.isArray(data.menus)) {
+          setSavedMenus(data.menus as SavedMenu[]);
+        }
+      } catch {
+        // Tyst – listan är inte kritisk för uppladdningsflödet.
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0];
@@ -21,7 +54,6 @@ export default function UploadPage() {
     setError(null);
     setFile(selected);
 
-    // Frigör eventuell tidigare objekt-URL innan vi skapar en ny.
     setPreviewUrl((current) => {
       if (current) URL.revokeObjectURL(current);
       return URL.createObjectURL(selected);
@@ -60,7 +92,6 @@ export default function UploadPage() {
         throw new Error(data?.error ?? "Något gick fel vid avläsningen.");
       }
 
-      // Spara den inlästa menyn och gå vidare till bekräftelsesidan.
       sessionStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(data));
       router.push("/bekrafta");
     } catch (err) {
@@ -70,8 +101,17 @@ export default function UploadPage() {
     }
   }
 
+  // Öppna en sparad meny i bekräftelsevyn (för att se / redigera / publicera om).
+  function openSavedMenu(menu: SavedMenu) {
+    sessionStorage.setItem(
+      MENU_STORAGE_KEY,
+      JSON.stringify({ vecka: menu.vecka, dagar: menu.dagar }),
+    );
+    router.push("/bekrafta");
+  }
+
   return (
-    <main className="relative flex flex-1 flex-col items-center justify-center px-6 py-16">
+    <main className="relative flex flex-1 flex-col items-center px-6 py-16">
       <form action="/auth/signout" method="post" className="absolute right-5 top-5">
         <button
           type="submit"
@@ -89,10 +129,6 @@ export default function UploadPage() {
           Fotografera din handskrivna meny så sköter vi resten
         </p>
 
-        {/* Två visuellt dolda inputs som öppnas via <label>-elementen nedan.
-            sr-only + label gör att mobilen kan öppna kameran/galleriet utan
-            JS-baserad .click(). Två separata inputs ger ett pålitligt val på
-            alla telefoner: capture → kameran, utan capture → galleriet. */}
         <input
           ref={cameraInputRef}
           id="menu-camera-input"
@@ -145,39 +181,70 @@ export default function UploadPage() {
             </button>
           </div>
         ) : (
-          <div className="mt-12 flex w-full max-w-xs flex-col items-center gap-4">
-            {/* Primärt val: öppna kameran */}
-            <label
-              htmlFor="menu-camera-input"
-              className="flex aspect-square w-full cursor-pointer flex-col items-center justify-center gap-4 rounded-3xl border-2 border-dashed border-stone-300 bg-white px-6 text-stone-600 shadow-sm transition-colors hover:border-stone-400 hover:bg-stone-50 active:bg-stone-100"
-            >
-              <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-900 text-white">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={1.75}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-8 w-8"
-                  aria-hidden="true"
-                >
-                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z" />
-                  <circle cx="12" cy="13" r="3.5" />
-                </svg>
-              </span>
-              <span className="text-lg font-medium">Ta ett foto</span>
-            </label>
+          <>
+            <div className="mt-12 flex w-full max-w-xs flex-col items-center gap-4">
+              {/* Primärt val: öppna kameran */}
+              <label
+                htmlFor="menu-camera-input"
+                className="flex aspect-square w-full cursor-pointer flex-col items-center justify-center gap-4 rounded-3xl border-2 border-dashed border-stone-300 bg-white px-6 text-stone-600 shadow-sm transition-colors hover:border-stone-400 hover:bg-stone-50 active:bg-stone-100"
+              >
+                <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-900 text-white">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.75}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-8 w-8"
+                    aria-hidden="true"
+                  >
+                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z" />
+                    <circle cx="12" cy="13" r="3.5" />
+                  </svg>
+                </span>
+                <span className="text-lg font-medium">Ta ett foto</span>
+              </label>
 
-            {/* Sekundärt val: välj en befintlig bild från galleriet */}
-            <label
-              htmlFor="menu-gallery-input"
-              className="cursor-pointer text-sm font-medium text-stone-500 underline-offset-4 transition-colors hover:text-stone-800 hover:underline"
-            >
-              eller välj en bild från galleriet
-            </label>
-          </div>
+              {/* Sekundärt val: välj en befintlig bild från galleriet */}
+              <label
+                htmlFor="menu-gallery-input"
+                className="cursor-pointer text-sm font-medium text-stone-500 underline-offset-4 transition-colors hover:text-stone-800 hover:underline"
+              >
+                eller välj en bild från galleriet
+              </label>
+            </div>
+
+            {/* Krögarens sparade menyer */}
+            {savedMenus.length > 0 && (
+              <section className="mt-14 w-full text-left">
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-stone-400">
+                  Tidigare menyer
+                </h2>
+                <ul className="mt-3 flex flex-col gap-2">
+                  {savedMenus.map((menu) => (
+                    <li key={menu.id}>
+                      <button
+                        type="button"
+                        onClick={() => openSavedMenu(menu)}
+                        className="flex w-full items-center justify-between rounded-2xl bg-white px-5 py-4 text-left shadow-sm ring-1 ring-stone-200 transition-colors hover:bg-stone-50 active:bg-stone-100"
+                      >
+                        <span className="text-base font-medium text-stone-900">
+                          {typeof menu.vecka === "number"
+                            ? `Vecka ${menu.vecka}`
+                            : "Meny"}
+                        </span>
+                        <span className="text-sm text-stone-400">
+                          {formatDate(menu.created_at)}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </>
         )}
       </div>
     </main>
