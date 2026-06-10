@@ -1,9 +1,7 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import type { Browser } from "puppeteer-core";
 
 import { renderMenyMall } from "@/app/components/MenyMall";
-import type { MenuDay } from "@/lib/menu";
+import type { Everyday, MenuDay } from "@/lib/menu";
 
 // A4 i pixlar vid 96 dpi (för skarpa skärmdumpar).
 const A4_WIDTH_PX = 794;
@@ -32,18 +30,6 @@ async function launchBrowser(): Promise<Browser> {
   }) as unknown as Browser;
 }
 
-/** Läser loggan från /public och returnerar den som data-URI, eller null. */
-async function loadLogo(): Promise<string | null> {
-  try {
-    const file = await readFile(
-      path.join(process.cwd(), "public", "limerick.png"),
-    );
-    return `data:image/png;base64,${file.toString("base64")}`;
-  } catch {
-    return null;
-  }
-}
-
 function buildHtml(markup: string): string {
   const fontLinks = `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">`;
   return `<!doctype html><html lang="sv"><head><meta charset="utf-8">${fontLinks}<style>html,body{margin:0;padding:0;}</style></head><body>${markup}</body></html>`;
@@ -59,11 +45,20 @@ export type MenuAssets = {
  * (PDF och/eller PNG) från en och samma rendering.
  */
 export async function renderMenuAssets(
-  { vecka, dagar }: { vecka: number; dagar: MenuDay[] },
+  {
+    vecka,
+    dagar,
+    logoSrc,
+    everyday,
+  }: {
+    vecka: number;
+    dagar: MenuDay[];
+    logoSrc?: string | null;
+    everyday?: Everyday;
+  },
   outputs: { pdf?: boolean; png?: boolean },
 ): Promise<MenuAssets> {
-  const logoSrc = await loadLogo();
-  const html = buildHtml(renderMenyMall({ vecka, dagar, logoSrc }));
+  const html = buildHtml(renderMenyMall({ vecka, dagar, logoSrc, everyday }));
 
   let browser: Browser | null = null;
   try {

@@ -1,4 +1,5 @@
 import { renderMenuAssets } from "@/lib/render-menu";
+import { getRenderSettings } from "@/lib/render-settings";
 import type { MenuDay } from "@/lib/menu";
 
 // Puppeteer kräver Node-runtimen (inte edge).
@@ -68,8 +69,9 @@ export async function POST(request: Request) {
   let pdf: Uint8Array;
   let png: Uint8Array;
   try {
+    const { logoSrc, everyday } = await getRenderSettings();
     const assets = await renderMenuAssets(
-      { vecka, dagar },
+      { vecka, dagar, logoSrc, everyday },
       { pdf: true, png: true },
     );
     pdf = assets.pdf!;

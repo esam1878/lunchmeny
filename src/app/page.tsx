@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 
@@ -112,6 +113,12 @@ export default function UploadPage() {
 
   return (
     <main className="relative flex flex-1 flex-col items-center px-6 py-16">
+      <Link
+        href="/installningar"
+        className="absolute left-5 top-5 text-sm font-medium text-stone-400 transition-colors hover:text-stone-700"
+      >
+        Inställningar
+      </Link>
       <form action="/auth/signout" method="post" className="absolute right-5 top-5">
         <button
           type="submit"

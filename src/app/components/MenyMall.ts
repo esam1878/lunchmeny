@@ -1,32 +1,4 @@
-import type { MenuDay } from "@/lib/menu";
-
-// Statisk sektion som är likadan varje vecka.
-const PASTARATTER = [
-  "Spaghetti Carbonara",
-  "Spaghetti Bolognese",
-  "Spaghetti Frutti de Mare",
-  "Vegetarisk Spaghetti",
-  "Rigatoni al Filetto",
-  "Rigatoni Emiliana",
-  "Lasagne al Forno",
-];
-
-const KOTTRATTER = [
-  "Lammfärsbiffar",
-  "Kycklingspett",
-  "Grillad Biff",
-  "Grillad Fläskfile",
-  "Cajunmarinerade Fläsknoisetter",
-  "Fläskkarre",
-  "Grillad Entrecote",
-];
-
-const SALLADER = [
-  "Caesarsallad",
-  "Tonsfisksallad",
-  "Ost & Skinksallad",
-  "Räksallad",
-];
+import type { Everyday, MenuDay } from "@/lib/menu";
 
 // Modern, ren typografi: varm grafit i stället för rent svart,
 // en dämpad terrakotta-accent och tydlig storlekshierarki.
@@ -162,18 +134,23 @@ function kolumn(titel: string, rätter: string[]): string {
     .join("")}</ul></div>`;
 }
 
+const EMPTY_EVERYDAY: Everyday = { pasta: [], meat: [], salad: [] };
+
 /**
  * Renderar lunchmenyn som en självständig HTML-sträng i A4-format.
  * logoSrc förväntas vara en data-URI (bäddas in vid PDF-generering).
+ * everyday är krögarens egen "Varje dag"-sektion.
  */
 export function renderMenyMall({
   vecka,
   dagar,
   logoSrc,
+  everyday = EMPTY_EVERYDAY,
 }: {
   vecka: number;
   dagar: MenuDay[];
   logoSrc?: string | null;
+  everyday?: Everyday;
 }): string {
   const logo = logoSrc
     ? `<img class="mm-logo" src="${logoSrc}" alt="Restaurangens logga" />`
@@ -183,10 +160,21 @@ export function renderMenyMall({
 
   const days = `<main class="mm-days">${dagar.map(dagBlock).join("")}</main>`;
 
-  const footer = `<footer class="mm-footer"><h2 class="mm-footer-title">VARJE DAG</h2><div class="mm-cols">${kolumn(
-    "Pasträtter",
-    PASTARATTER,
-  )}${kolumn("Kötträtter", KOTTRATTER)}${kolumn("Sallader", SALLADER)}</div></footer>`;
+  // "Varje dag" – visa bara kolumner som har rätter, och hela sektionen bara
+  // om något finns ifyllt.
+  const columns = [
+    ["Pasträtter", everyday.pasta],
+    ["Kötträtter", everyday.meat],
+    ["Sallader", everyday.salad],
+  ] as const;
+  const filled = columns.filter(([, items]) => items.length > 0);
+
+  const footer =
+    filled.length > 0
+      ? `<footer class="mm-footer"><h2 class="mm-footer-title">VARJE DAG</h2><div class="mm-cols">${filled
+          .map(([titel, items]) => kolumn(titel, items))
+          .join("")}</div></footer>`
+      : "";
 
   return `<div class="mm-root"><style>${CSS}</style>${header}${days}${footer}</div>`;
 }

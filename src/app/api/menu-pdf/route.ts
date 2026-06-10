@@ -1,4 +1,5 @@
 import { renderMenuAssets } from "@/lib/render-menu";
+import { getRenderSettings } from "@/lib/render-settings";
 import type { MenuDay } from "@/lib/menu";
 
 // Puppeteer kräver Node-runtimen (inte edge).
@@ -30,16 +31,24 @@ export async function POST(request: Request) {
     );
   }
 
-  // 2. Rendera med Puppeteer.
+  // 2. Hämta krögarens egna inställningar (logga + "Varje dag") och rendera.
   try {
+    const { logoSrc, everyday } = await getRenderSettings();
+
     if (format === "png") {
-      const { png } = await renderMenuAssets({ vecka, dagar }, { png: true });
+      const { png } = await renderMenuAssets(
+        { vecka, dagar, logoSrc, everyday },
+        { png: true },
+      );
       return new Response(Buffer.from(png!), {
         headers: { "Content-Type": "image/png" },
       });
     }
 
-    const { pdf } = await renderMenuAssets({ vecka, dagar }, { pdf: true });
+    const { pdf } = await renderMenuAssets(
+      { vecka, dagar, logoSrc, everyday },
+      { pdf: true },
+    );
     return new Response(Buffer.from(pdf!), {
       headers: {
         "Content-Type": "application/pdf",

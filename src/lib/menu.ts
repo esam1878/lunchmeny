@@ -20,6 +20,24 @@ export type SavedMenu = {
   created_at: string;
 };
 
+/** Den statiska "Varje dag"-sektionen (skiljer sig mellan krögare). */
+export type Everyday = {
+  pasta: string[];
+  meat: string[];
+  salad: string[];
+};
+
+/** En krögares egna inställningar. */
+export type TenantSettings = {
+  logo_path: string | null;
+  email_printer: string | null;
+  email_neighborhood: string | null;
+  facebook_page: string | null;
+  everyday_pasta: string[];
+  everyday_meat: string[];
+  everyday_salad: string[];
+};
+
 // Nyckel för att skicka den inlästa menyn mellan uppladdnings- och
 // bekräftelsesidan via sessionStorage.
 export const MENU_STORAGE_KEY = "lunchmeny:inläst-meny";
