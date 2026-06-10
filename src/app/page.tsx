@@ -71,7 +71,16 @@ export default function UploadPage() {
   }
 
   return (
-    <main className="flex flex-1 flex-col items-center justify-center px-6 py-16">
+    <main className="relative flex flex-1 flex-col items-center justify-center px-6 py-16">
+      <form action="/auth/signout" method="post" className="absolute right-5 top-5">
+        <button
+          type="submit"
+          className="text-sm font-medium text-stone-400 transition-colors hover:text-stone-700"
+        >
+          Logga ut
+        </button>
+      </form>
+
       <div className="flex w-full max-w-md flex-col items-center text-center">
         <h1 className="text-3xl font-semibold tracking-tight text-stone-900 sm:text-4xl">
           Ladda upp veckans meny
