@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
+import type { Recipient } from "@/lib/menu";
 
 const COLUMNS =
-  "logo_path, email_printer, email_neighborhood, facebook_page, everyday_pasta, everyday_meat, everyday_salad";
+  "logo_path, recipients, facebook_page, everyday_pasta, everyday_meat, everyday_salad";
 
 function asStringList(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
@@ -14,6 +15,21 @@ function asText(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+// Rensar mottagarlistan: behåll bara rader med e-post, normalisera formatet.
+function asRecipients(value: unknown): Recipient[] {
+  if (!Array.isArray(value)) return [];
+  const result: Recipient[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const row = item as { email?: unknown; format?: unknown };
+    const email = typeof row.email === "string" ? row.email.trim() : "";
+    if (!email) continue;
+    const format = row.format === "text" ? "text" : "pdf";
+    result.push({ email, format });
+  }
+  return result;
 }
 
 // Hämtar den inloggade krögarens inställningar (eller tomma defaults).
@@ -32,8 +48,7 @@ export async function GET() {
   return Response.json({
     settings: {
       logo_path: data?.logo_path ?? null,
-      email_printer: data?.email_printer ?? null,
-      email_neighborhood: data?.email_neighborhood ?? null,
+      recipients: asRecipients(data?.recipients),
       facebook_page: data?.facebook_page ?? null,
       everyday_pasta: data?.everyday_pasta ?? [],
       everyday_meat: data?.everyday_meat ?? [],
@@ -74,8 +89,7 @@ export async function PUT(request: Request) {
     {
       tenant_id: profile.tenant_id as string,
       logo_path: asText(body.logo_path),
-      email_printer: asText(body.email_printer),
-      email_neighborhood: asText(body.email_neighborhood),
+      recipients: asRecipients(body.recipients),
       facebook_page: asText(body.facebook_page),
       everyday_pasta: asStringList(body.everyday_pasta),
       everyday_meat: asStringList(body.everyday_meat),

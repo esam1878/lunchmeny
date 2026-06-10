@@ -27,11 +27,17 @@ export type Everyday = {
   salad: string[];
 };
 
+/** En mottagare av menyn + vilket format som ska skickas. */
+export type RecipientFormat = "pdf" | "text";
+export type Recipient = {
+  email: string;
+  format: RecipientFormat;
+};
+
 /** En krögares egna inställningar. */
 export type TenantSettings = {
   logo_path: string | null;
-  email_printer: string | null;
-  email_neighborhood: string | null;
+  recipients: Recipient[];
   facebook_page: string | null;
   everyday_pasta: string[];
   everyday_meat: string[];

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { createClient } from "@/lib/supabase/client";
+import type { Recipient, RecipientFormat } from "@/lib/menu";
 
 function splitLines(text: string): string[] {
   return text
@@ -14,8 +15,7 @@ function splitLines(text: string): string[] {
 
 export default function SettingsPage() {
   const [loaded, setLoaded] = useState(false);
-  const [emailPrinter, setEmailPrinter] = useState("");
-  const [emailNeighborhood, setEmailNeighborhood] = useState("");
+  const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [facebookPage, setFacebookPage] = useState("");
   const [pasta, setPasta] = useState("");
   const [meat, setMeat] = useState("");
@@ -39,8 +39,7 @@ export default function SettingsPage() {
         const data = await res.json();
         if (!active || !data?.settings) return;
         const s = data.settings;
-        setEmailPrinter(s.email_printer ?? "");
-        setEmailNeighborhood(s.email_neighborhood ?? "");
+        setRecipients(Array.isArray(s.recipients) ? s.recipients : []);
         setFacebookPage(s.facebook_page ?? "");
         setPasta((s.everyday_pasta ?? []).join("\n"));
         setMeat((s.everyday_meat ?? []).join("\n"));
@@ -74,6 +73,34 @@ export default function SettingsPage() {
       if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
       return URL.createObjectURL(file);
     });
+  }
+
+  function addRecipient() {
+    setSaved(false);
+    setRecipients((current) => [...current, { email: "", format: "pdf" }]);
+  }
+
+  function updateRecipient(
+    index: number,
+    field: "email" | "format",
+    value: string,
+  ) {
+    setSaved(false);
+    setRecipients((current) =>
+      current.map((recipient, i) =>
+        i === index
+          ? {
+              ...recipient,
+              [field]: field === "format" ? (value as RecipientFormat) : value,
+            }
+          : recipient,
+      ),
+    );
+  }
+
+  function removeRecipient(index: number) {
+    setSaved(false);
+    setRecipients((current) => current.filter((_, i) => i !== index));
   }
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
@@ -114,8 +141,7 @@ export default function SettingsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           logo_path: newLogoPath,
-          email_printer: emailPrinter,
-          email_neighborhood: emailNeighborhood,
+          recipients: recipients.filter((r) => r.email.trim().length > 0),
           facebook_page: facebookPage,
           everyday_pasta: splitLines(pasta),
           everyday_meat: splitLines(meat),
@@ -210,30 +236,55 @@ export default function SettingsPage() {
         <section className="mt-8">
           <h2 className="text-base font-semibold text-stone-900">Mottagare</h2>
           <p className="mt-1 text-sm text-stone-500">
-            Vart menyn ska skickas när du publicerar.
+            Vilka som ska få menyn när du publicerar – och i vilket format.
           </p>
 
-          <label className="mt-4 block text-sm font-medium text-stone-700">
-            E-post till skrivarpersonen
-            <input
-              type="email"
-              value={emailPrinter}
-              onChange={(e) => setEmailPrinter(e.target.value)}
-              placeholder="skrivare@example.com"
-              className={`mt-1.5 ${fieldClass}`}
-            />
-          </label>
+          <div className="mt-4 flex flex-col gap-3">
+            {recipients.map((recipient, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <input
+                  type="email"
+                  value={recipient.email}
+                  onChange={(e) =>
+                    updateRecipient(index, "email", e.target.value)
+                  }
+                  placeholder="mottagare@example.com"
+                  className={`flex-1 ${fieldClass}`}
+                />
+                <select
+                  value={recipient.format}
+                  onChange={(e) =>
+                    updateRecipient(index, "format", e.target.value)
+                  }
+                  aria-label="Format"
+                  className="shrink-0 rounded-2xl bg-stone-100 px-3 py-3.5 text-base text-stone-900 outline-none transition-colors focus:bg-white focus:ring-2 focus:ring-stone-300"
+                >
+                  <option value="pdf">PDF</option>
+                  <option value="text">Ren text</option>
+                </select>
+                <button
+                  type="button"
+                  onClick={() => removeRecipient(index)}
+                  aria-label="Ta bort mottagare"
+                  className="flex h-11 w-9 shrink-0 items-center justify-center rounded-2xl text-xl text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-700"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
 
-          <label className="mt-4 block text-sm font-medium text-stone-700">
-            E-post till kvartersmenyn
-            <input
-              type="email"
-              value={emailNeighborhood}
-              onChange={(e) => setEmailNeighborhood(e.target.value)}
-              placeholder="kvartersmeny@example.com"
-              className={`mt-1.5 ${fieldClass}`}
-            />
-          </label>
+            {recipients.length === 0 && (
+              <p className="text-sm text-stone-400">Inga mottagare ännu.</p>
+            )}
+
+            <button
+              type="button"
+              onClick={addRecipient}
+              className="self-start rounded-2xl border border-stone-300 bg-white px-4 py-2.5 text-sm font-medium text-stone-800 transition-colors hover:bg-stone-100"
+            >
+              + Lägg till mottagare
+            </button>
+          </div>
         </section>
 
         {/* Facebook */}
