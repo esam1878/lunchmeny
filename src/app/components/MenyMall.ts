@@ -4,7 +4,6 @@ import type { MenuDay } from "@/lib/menu";
 const PASTARATTER = [
   "Spaghetti Carbonara",
   "Spaghetti Bolognese",
-  "Spaghetti Frutti de Mare",
   "Vegetarisk Spaghetti",
   "Rigatoni al Filetto",
   "Rigatoni Emiliana",
@@ -12,12 +11,10 @@ const PASTARATTER = [
 ];
 
 const KOTTRATTER = [
-  "Lammfärsbiffar",
   "Kycklingspett",
   "Grillad Biff",
   "Grillad Fläskfile",
   "Cajunmarinerade Fläsknoisetter",
-  "Fläskkarre",
   "Grillad Entrecote",
 ];
 
