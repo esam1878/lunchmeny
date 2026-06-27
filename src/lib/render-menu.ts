@@ -36,7 +36,7 @@ async function launchBrowser(): Promise<Browser> {
 async function loadLogo(): Promise<string | null> {
   try {
     const file = await readFile(
-      path.join(process.cwd(), "public", "limerick.png"),
+      path.join(process.cwd(), "public", "dagens-meny-logo.png"),
     );
     return `data:image/png;base64,${file.toString("base64")}`;
   } catch {
@@ -45,7 +45,10 @@ async function loadLogo(): Promise<string | null> {
 }
 
 function buildHtml(markup: string): string {
-  const fontLinks = `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">`;
+  // Typsnitten som nya menydesignen använder (Google Fonts).
+  const fontHref =
+    "https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap";
+  const fontLinks = `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="${fontHref}" rel="stylesheet">`;
   return `<!doctype html><html lang="sv"><head><meta charset="utf-8">${fontLinks}<style>html,body{margin:0;padding:0;}</style></head><body>${markup}</body></html>`;
 }
 

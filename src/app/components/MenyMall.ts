@@ -1,6 +1,6 @@
 import type { MenuDay } from "@/lib/menu";
 
-// Statisk sektion som är likadan varje vecka.
+// Statisk "Serveras varje dag"-sektion (samma databindning som tidigare).
 const PASTARATTER = [
   "Spaghetti Carbonara",
   "Spaghetti Bolognese",
@@ -28,110 +28,158 @@ const SALLADER = [
   "Räksallad",
 ];
 
-// Modern, ren typografi: varm grafit i stället för rent svart,
-// en dämpad terrakotta-accent och tydlig storlekshierarki.
+// Ny design (Limerick "Vecka 26"): crème bakgrund, grön/orange accenter och
+// serif-typografi (DM Serif Display, Libre Baskerville, Source Serif 4, Archivo).
 const CSS = `
-  .mm-root * { box-sizing: border-box; }
+  .mm-root * {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   .mm-root {
-    width: 210mm;
-    min-height: 297mm;
+    width: 794px;
+    min-height: 1123px;
     margin: 0 auto;
-    padding: 15mm 17mm 13mm;
-    background: #ffffff;
-    color: #5c544c;
-    font-family: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
-    font-weight: 400;
+    background: #faf6ec;
+    color: #1a1a1a;
+    font-family: "Source Serif 4", serif;
+    padding: 42px 58px 32px;
     display: flex;
     flex-direction: column;
   }
+  @page { size: A4; margin: 0; }
+  @media print {
+    .mm-root { width: 210mm; min-height: 297mm; }
+  }
+
+  /* Header */
   .mm-header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 9mm;
+    gap: 13px;
+    margin-bottom: 14px;
   }
-  .mm-logo { max-height: 24mm; width: auto; }
-  .mm-wordmark { font-size: 24pt; font-weight: 700; letter-spacing: 1px; color: #2a2521; }
-  .mm-title {
-    margin-top: 4mm;
-    align-self: flex-end;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.5mm;
+  .mm-logo { width: 320px; height: auto; display: block; }
+  .mm-wordmark {
+    font-family: "DM Serif Display", serif;
+    font-size: 38px;
+    color: #1f6b34;
   }
-  .mm-title-label {
-    font-size: 8.5pt;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 2.5px;
-    color: #a8a29e;
-  }
-  .mm-title-week {
-    font-size: 21pt;
-    font-weight: 700;
-    line-height: 1;
-    color: #b5552f;
-  }
-  .mm-days { flex: 1 0 auto; }
-  .mm-day { margin-bottom: 6mm; break-inside: avoid; }
-  .mm-day-head {
+  .mm-veckans {
+    width: 100%;
     display: flex;
     align-items: center;
-    gap: 3mm;
-    padding-bottom: 1.5mm;
-    margin-bottom: 2.5mm;
-    border-bottom: 0.5pt solid #e7e5e4;
+    justify-content: center;
+    gap: 18px;
+  }
+  .mm-rule { flex: 1; height: 1px; background: #d4c8ad; }
+  .mm-veckans-text {
+    font-family: "DM Serif Display", serif;
+    font-size: 25px;
+    color: #1f6b34;
+    letter-spacing: 0.5px;
+  }
+  .mm-subtitle {
+    font-family: "Archivo", sans-serif;
+    font-size: 13.5px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #a8480c;
+  }
+
+  /* Veckodagar */
+  .mm-days { display: flex; flex-direction: column; gap: 9px; }
+  .mm-day-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 9px;
   }
   .mm-day-name {
-    font-size: 14pt;
-    font-weight: 600;
-    letter-spacing: 0.2px;
-    color: #2a2521;
+    font-family: "Libre Baskerville", serif;
+    font-size: 24px;
+    color: #1f6b34;
     margin: 0;
   }
-  .mm-holiday-tag {
-    font-size: 8pt;
+  .mm-rod-dag {
+    font-family: "Archivo", sans-serif;
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: #9f1239;
-    background: #fbe9ec;
-    padding: 0.6mm 2.2mm;
-    border-radius: 2mm;
+    color: #a8480c;
   }
-  .mm-dishes { margin: 0; padding-left: 5mm; }
-  .mm-dishes li { font-size: 11pt; line-height: 1.65; color: #5c544c; }
-  .mm-holiday { font-size: 11pt; font-style: italic; margin: 0; color: #5c544c; }
-  .mm-footer {
-    margin-top: 8mm;
-    border-top: 1pt solid #2a2521;
-    padding-top: 5mm;
+  .mm-day-rule {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, #d8c79a, transparent);
   }
-  .mm-footer-title {
-    text-align: center;
-    font-size: 11pt;
-    font-weight: 700;
-    text-transform: uppercase;
+  .mm-dishes { display: flex; flex-direction: column; gap: 7px; }
+  .mm-dish {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.45;
+    color: #1a1a1a;
+  }
+  .mm-holiday {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.45;
+    font-style: italic;
+    color: #a8480c;
+  }
+
+  /* Serveras varje dag */
+  .mm-everyday {
+    margin-top: 12px;
+    border-top: 2px solid #1f6b34;
+    padding-top: 12px;
+  }
+  .mm-everyday-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .mm-diamond { color: #d96a1f; font-size: 11px; }
+  .mm-everyday-title {
+    font-family: "Libre Baskerville", serif;
+    font-size: 15px;
     letter-spacing: 4px;
-    color: #b5552f;
-    margin: 0 0 5mm;
-  }
-  .mm-cols { display: flex; gap: 9mm; }
-  .mm-col { flex: 1; }
-  .mm-col h3 {
-    font-size: 10.5pt;
-    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: #2a2521;
-    margin: 0 0 2.5mm;
-    padding-bottom: 1.5mm;
-    border-bottom: 0.75pt solid #b5552f;
+    color: #1f6b34;
   }
-  .mm-col ul { margin: 0; padding-left: 4.5mm; }
-  .mm-col li { font-size: 9.5pt; line-height: 1.6; color: #5c544c; }
-  @page { size: A4; margin: 0; }
+  .mm-everyday-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 26px;
+  }
+  .mm-everyday-col-title {
+    font-family: "Libre Baskerville", serif;
+    font-size: 15px;
+    color: #a8480c;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+  .mm-everyday-col-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 14.5px;
+    color: #2b2622;
+  }
+
+  /* Footer */
+  .mm-spacer { flex: 1; }
+  .mm-footer {
+    text-align: center;
+    font-style: italic;
+    font-size: 13px;
+    color: #6b6258;
+    padding-top: 18px;
+  }
 `;
 
 /** Escapar text så att rätt-namn inte kan bryta HTML:en. */
@@ -144,22 +192,22 @@ function esc(text: string): string {
 }
 
 function dagBlock(day: MenuDay): string {
-  const tag = day.rödDag ? `<span class="mm-holiday-tag">Röd dag</span>` : "";
-  const head = `<div class="mm-day-head"><h2 class="mm-day-name">${esc(day.dag)}</h2>${tag}</div>`;
+  const tag = day.rödDag ? `<span class="mm-rod-dag">Röd dag</span>` : "";
+  const head = `<div class="mm-day-head"><h3 class="mm-day-name">${esc(day.dag)}</h3>${tag}<div class="mm-day-rule"></div></div>`;
 
   const body = day.rödDag
-    ? `<p class="mm-holiday">${esc(day.helgdag ?? "Helgdag")}</p>`
-    : `<ul class="mm-dishes">${day.rätter
-        .map((rätt) => `<li>${esc(rätt)}</li>`)
-        .join("")}</ul>`;
+    ? `<div class="mm-dishes"><p class="mm-holiday">${esc(day.helgdag ?? "Helgdag")}</p></div>`
+    : `<div class="mm-dishes">${day.rätter
+        .map((rätt) => `<p class="mm-dish">${esc(rätt)}</p>`)
+        .join("")}</div>`;
 
-  return `<div class="mm-day">${head}${body}</div>`;
+  return `<div>${head}${body}</div>`;
 }
 
-function kolumn(titel: string, rätter: string[]): string {
-  return `<div class="mm-col"><h3>${esc(titel)}</h3><ul>${rätter
-    .map((r) => `<li>${esc(r)}</li>`)
-    .join("")}</ul></div>`;
+function everydayCol(titel: string, rätter: string[]): string {
+  return `<div><div class="mm-everyday-col-title">${esc(titel)}</div><div class="mm-everyday-col-list">${rätter
+    .map((r) => `<span>${esc(r)}</span>`)
+    .join("")}</div></div>`;
 }
 
 /**
@@ -179,14 +227,16 @@ export function renderMenyMall({
     ? `<img class="mm-logo" src="${logoSrc}" alt="Restaurangens logga" />`
     : `<div class="mm-wordmark">Lunchmeny</div>`;
 
-  const header = `<header class="mm-header">${logo}<div class="mm-title"><span class="mm-title-label">Lunch Meny</span><span class="mm-title-week">Vecka ${vecka}</span></div></header>`;
+  const header = `<div class="mm-header">${logo}<div class="mm-veckans"><div class="mm-rule"></div><div class="mm-veckans-text">Veckans Lunch</div><div class="mm-rule"></div></div><div class="mm-subtitle">Vecka ${vecka} — serveras 10–16 — 120 kr</div></div>`;
 
-  const days = `<main class="mm-days">${dagar.map(dagBlock).join("")}</main>`;
+  const days = `<div class="mm-days">${dagar.map(dagBlock).join("")}</div>`;
 
-  const footer = `<footer class="mm-footer"><h2 class="mm-footer-title">VARJE DAG</h2><div class="mm-cols">${kolumn(
-    "Pasträtter",
+  const everyday = `<div class="mm-everyday"><div class="mm-everyday-head"><span class="mm-diamond">◆</span><div class="mm-everyday-title">Serveras varje dag</div><span class="mm-diamond">◆</span></div><div class="mm-everyday-grid">${everydayCol(
+    "Pastarätter",
     PASTARATTER,
-  )}${kolumn("Kötträtter", KOTTRATTER)}${kolumn("Sallader", SALLADER)}</div></footer>`;
+  )}${everydayCol("Kötträtter", KOTTRATTER)}${everydayCol("Sallader", SALLADER)}</div></div>`;
 
-  return `<div class="mm-root"><style>${CSS}</style>${header}${days}${footer}</div>`;
+  const footer = `<div class="mm-spacer"></div><div class="mm-footer">Hjärtligt välkommen till Restaurang Pub Limerick Grill</div>`;
+
+  return `<div class="mm-root"><style>${CSS}</style>${header}${days}${everyday}${footer}</div>`;
 }
