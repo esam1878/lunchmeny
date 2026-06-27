@@ -236,7 +236,7 @@ export function renderMenyMall({
     PASTARATTER,
   )}${everydayCol("Kötträtter", KOTTRATTER)}${everydayCol("Sallader", SALLADER)}</div></div>`;
 
-  const footer = `<div class="mm-spacer"></div><div class="mm-footer">Hjärtligt välkommen till Restaurang Pub Limerick Grill</div>`;
+  const footer = `<div class="mm-spacer"></div><div class="mm-footer">Hjärtligt välkomna till Restaurang Limerick bar och grill</div>`;
 
   return `<div class="mm-root"><style>${CSS}</style>${header}${days}${everyday}${footer}</div>`;
 }
